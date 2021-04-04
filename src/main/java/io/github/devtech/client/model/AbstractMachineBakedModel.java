@@ -50,7 +50,7 @@ public abstract class AbstractMachineBakedModel extends AbstractBakedModel {
 					emitter.spriteBake(0, RESOLVED.get(port.getTexture()), MutableQuadView.BAKE_LOCK_UV);
 					emitter.spriteColor(0, -1, -1, -1, -1);
 					emitter.emit();
-					PortColor color = port.color;
+					PortColor color = port.getColor();
 					if(color != PortColor.NONE) {
 						emitter.square(direction, 0, 0, 1f, 1f, 0);
 						emitter.material(this.transparentMaterial.get());

@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.astrarre.util.v0.api.Id;
+import io.github.devtech.api.registry.DDrawables;
 import io.github.devtech.api.registry.DLang;
 import io.github.devtech.api.registry.DMachines;
+import io.github.devtech.api.registry.DOres;
 import io.github.devtech.api.registry.DPorts;
 import io.github.devtech.api.registry.DBlocks;
 import io.github.devtech.api.registry.DItems;
+import io.github.devtech.api.registry.DTags;
 import io.github.devtech.api.registry.DTiles;
 import io.github.devtech.api.datagen.ResourceGenerator;
 import net.devtech.arrp.api.RRPCallback;
@@ -20,6 +23,7 @@ import net.minecraft.util.math.Direction;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class Devtech implements ModInitializer {
@@ -36,11 +40,15 @@ public class Devtech implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		DDrawables.init();
+		DTags.init();
 		DItems.init();
 		DBlocks.init();
 		DTiles.init();
 		DPorts.init();
 		DMachines.init();
+		DOres.init();
+
 
 		RRPCallback.EVENT.register(resources -> {
 			if(IS_DEV || resourcePack == null) {
@@ -48,6 +56,7 @@ public class Devtech implements ModInitializer {
 				JLang americanEnglish = new JLang();
 
 				DItems.loadResources(resourcePack, americanEnglish);
+				DBlocks.loadResources(resourcePack, americanEnglish);
 				americanEnglish.getLang().putAll(DLang.EN_US);
 
 				resourcePack.addLang(id("en_us"), americanEnglish);

@@ -25,7 +25,9 @@ public class MachineModelProvider implements ModelResourceProvider {
 		return MODELS.get(resourceId);
 	}
 
-	public static void add(String name, AbstractMachineBakedModel model) {
-		MODELS.put(Devtech.id(name), model);
+	public static void add(AbstractMachineBakedModel model, String...names) {
+		for (String name : names) {
+			MODELS.put(Devtech.id(name), model);
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package io.github.devtech.api.port;
 
+import java.util.Objects;
+
 import io.github.astrarre.itemview.v0.api.Serializer;
 import io.github.astrarre.itemview.v0.api.nbt.NBTagView;
 import io.github.astrarre.itemview.v0.fabric.FabricSerializers;
@@ -24,7 +26,9 @@ public abstract class Port {
 		return builder;
 	});
 
-	public PortColor color;
+	public boolean isValid = true;
+	private PortColor color;
+	private Port.Type type;
 
 	public Port(PortColor color) {
 		this.color = color;
@@ -46,6 +50,8 @@ public abstract class Port {
 
 	public void tick(BlockEntity entity, Direction face) {}
 
+	public void invalidate() {this.isValid = false;}
+
 	public abstract Entry getEntry();
 
 	@Environment (EnvType.CLIENT)
@@ -53,6 +59,21 @@ public abstract class Port {
 
 	@Environment (EnvType.CLIENT)
 	public abstract SpriteIdentifier getBarTexture();
+
+	public Port.Type getType() {
+		if(this.type == null) this.type = new Port.Type(this.getEntry(), this.getColor());
+		return this.type;
+	}
+
+	public PortColor getColor() {
+		return this.color;
+	}
+
+	public Port setColor(PortColor color) {
+		this.color = color;
+		this.type = null;
+		return this;
+	}
 
 	public interface Entry {
 		Port from(NBTagView tag);
@@ -69,6 +90,30 @@ public abstract class Port {
 
 		public boolean is(Port port) {
 			return port.color == this.color && port.getEntry() == this.entry;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Type)) {
+				return false;
+			}
+
+			Type type = (Type) o;
+
+			if (!Objects.equals(this.entry, type.entry)) {
+				return false;
+			}
+			return this.color == type.color;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = this.entry != null ? this.entry.hashCode() : 0;
+			result = 31 * result + (this.color != null ? this.color.hashCode() : 0);
+			return result;
 		}
 	}
 }

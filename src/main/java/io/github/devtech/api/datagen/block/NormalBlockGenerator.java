@@ -4,20 +4,23 @@ import io.github.devtech.Devtech;
 import io.github.devtech.api.datagen.ResourceGenerator;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.devtech.arrp.json.blockstate.JState;
+import net.devtech.arrp.json.models.JModel;
 
 import net.minecraft.util.Identifier;
 
-public class FullBlockStateGenerator implements ResourceGenerator {
+public class NormalBlockGenerator implements ResourceGenerator {
 	public final Identifier id;
 
-	public FullBlockStateGenerator(Identifier id) {
+	public NormalBlockGenerator(Identifier id) {
 		this.id = id;
 	}
 
 	@Override
 	public void generate(RuntimeResourcePack pack) {
 		if(Devtech.IS_CLIENT) {
-			pack.addBlockState(JState.state().add(JState.variant(JState.model("devtech:block/test"))), this.id);
+			Identifier id = fix(this.id, "block");
+			pack.addBlockState(JState.state().add(JState.variant(JState.model(id + ""))), this.id);
+			pack.addModel(JModel.model("block/cube_all").textures(JModel.textures().var("all", id + "")), id);
 		}
 	}
 

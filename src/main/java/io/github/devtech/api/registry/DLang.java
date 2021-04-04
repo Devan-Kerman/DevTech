@@ -3,6 +3,8 @@ package io.github.devtech.api.registry;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.astrarre.gui.v0.api.DrawableRegistry;
+
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -22,7 +24,7 @@ public interface DLang {
 	Text TORQUE_EXCESS = translate("tooltip.devtech.torque_excess", "Excess torque ").append(TORQUE_EXCESS_HELPER);
 	Text INTEGRATED_PORTS = translate("tooltip.devtech.integrated_ports", "Integrated Ports:").formatted(Formatting.GRAY);
 	Text MECHANICAL_LOOM_DESC = translate("tooltip.devtech.mechanical_loom_description", "Turn base fabric into items").formatted(Formatting.GRAY);
-	Text MECHANICAL_LOOM_HELPER = translate("tooltip.devtech.mechanical_loom_helper", "Use a crankshaft to start devtech progression").formatted(Formatting.GRAY);
+	Text BASIC_ALLOY_KILN_DESC = translate("tooltip.devtech.basic_alloy_kiln_description", "Melts together multiple ingots into one");
 	Text INPUT_ROTATIONAL_ENERGY_PORT = translate("port.devtech.rotational_energy.input", "Input Rotating Port");
 	Text INPUT_ITEM_PORT = translate("port.devtech.item.input", "Input Item Port");
 	Text OUTPUT_ITEM_PORT = translate("port.devtech.item.output", "Output Item Port");
@@ -31,6 +33,7 @@ public interface DLang {
 			.formatted(Formatting.DARK_GRAY, Formatting.ITALIC);
 	@Deprecated
 	Text RPT = translate("tooltip.devtech.rpt", "%3.3f RPT ").append(RPT_HELPER);
+	Text BASIC_ALLOY_KILN = translate("gui.devtech.basic_alloy_kiln", "Basic Alloy Kiln");
 
 	static Text rpt(float rpm) {
 		return new TranslatableText("tooltip.devtech.rpt", rpm).append(RPT_HELPER);

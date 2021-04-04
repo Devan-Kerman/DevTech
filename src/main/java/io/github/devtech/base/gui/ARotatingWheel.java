@@ -14,6 +14,7 @@ import io.github.astrarre.rendering.v0.api.Transformation;
 import io.github.astrarre.rendering.v0.api.util.Close;
 import io.github.astrarre.rendering.v0.api.util.Polygon;
 import io.github.devtech.Devtech;
+import io.github.devtech.api.registry.DDrawables;
 import io.github.devtech.api.registry.DLang;
 import io.github.devtech.api.registry.DTextures;
 
@@ -21,14 +22,14 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 public final class ARotatingWheel extends ADrawable implements Interactable, Tickable {
-	private static final DrawableRegistry.Entry AROTATING_WHEEL = DrawableRegistry.registerForward(Devtech.id2("rot_whel"), ARotatingWheel::new);
+
 	public final SyncedProperty<Float> rotationsPerTick = this.createClientSyncedProperty(NBTType.FLOAT, 0f);
 	@Environment(EnvType.CLIENT)
 	private float rotation;
 	@Environment(EnvType.CLIENT)
 	private boolean hover;
 	public ARotatingWheel() {
-		super(AROTATING_WHEEL);
+		super(DDrawables.ROTATING_WHEEL);
 		this.setBounds(Polygon.rectangle(8, 8));
 	}
 

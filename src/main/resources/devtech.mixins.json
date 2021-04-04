@@ -4,6 +4,7 @@
   "package": "io.github.devtech.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "ShovelItemAccess"
   ],
   "client": [
   ],

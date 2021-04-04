@@ -1,0 +1,3 @@
+minecraft:string x8 + 10 + 200 --[devtech:mechanical_loom]-> devtech:cloth_windmill
+#minecraft:wool x2 + 10 + 200 --[devtech:mechanical_loom]-> devtech:cloth_windmill
+minecraft:paper x32 + 40 + 800 --[devtech:mechanical_loom]-> devtech:cloth_windmill

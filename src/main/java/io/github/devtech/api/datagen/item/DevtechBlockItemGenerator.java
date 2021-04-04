@@ -8,20 +8,15 @@ import net.devtech.arrp.api.RuntimeResourcePack;
 
 import net.minecraft.util.Identifier;
 
-/**
- * generates a default item model for a block
- */
-public class BlockItemGenerator implements ResourceGenerator {
-	protected final Identifier data;
-
-	public BlockItemGenerator(Identifier blockIdentifier) {
-		this.data = blockIdentifier;
+public class DevtechBlockItemGenerator extends BlockItemGenerator {
+	public DevtechBlockItemGenerator(Identifier blockIdentifier) {
+		super(blockIdentifier);
 	}
 
 	@Override
 	public void generate(RuntimeResourcePack pack) {
 		if (Devtech.IS_CLIENT) {
-			pack.addModel(model(ResourceGenerator.prefixPath(this.data, "block/").toString()), ResourceGenerator.prefixPath(this.data, "item/"));
+			pack.addModel(model(ResourceGenerator.prefixPath(this.data, "block/").toString() + "_off"), ResourceGenerator.prefixPath(this.data, "item/"));
 		}
 	}
 }

@@ -35,9 +35,9 @@ public abstract class FacingDevtechMachine extends DevtechMachine {
 		case NORTH:
 			return target;
 		case WEST:
-			return getClockwise(target);
-		case EAST:
 			return getClockwise(target).getOpposite();
+		case EAST:
+			return getClockwise(target);
 		case SOUTH:
 			return target.getOpposite();
 		case UP:
@@ -91,14 +91,15 @@ public abstract class FacingDevtechMachine extends DevtechMachine {
 
 	public abstract class FacingBlockEntity extends DefaultBlockEntity {
 		@Override
+		protected Direction derelativize(Direction relative) {
+			return rotate(this.getCachedState().get(HorizontalFacingBlock.FACING), relative);
+		}
+
+		@Override
 		public Port getPortAbsolute(Direction direction) {
 			return this.getPort(FacingDevtechMachine.this.relativize(direction, this.getCachedState()));
 		}
 
-		@Override
-		public void tick() {
-			this.relativePorts.forEach((direction, port) -> port.tick(this, realign(this.getCachedState().get(HorizontalFacingBlock.FACING), direction)));
-		}
 	}
 
 	public class FacingBlock extends DefaultBlock {

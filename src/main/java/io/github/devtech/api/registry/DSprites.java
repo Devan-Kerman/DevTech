@@ -7,6 +7,7 @@ import io.github.devtech.Devtech;
 
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
+import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -14,6 +15,7 @@ import net.fabricmc.api.Environment;
 @Environment(EnvType.CLIENT)
 public interface DSprites {
 	SpriteIdentifier WOODEN_CHASSIS = of("block/tier1/wooden_chassis");
+	SpriteIdentifier FURNACE_CHASSIS = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("block/furnace_side"));
 
 	static SpriteIdentifier of(String id) {
 		return new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Devtech.id(id));

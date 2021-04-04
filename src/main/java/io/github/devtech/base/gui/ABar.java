@@ -13,6 +13,7 @@ import io.github.astrarre.rendering.v0.api.Transformation;
 import io.github.astrarre.rendering.v0.api.util.Close;
 import io.github.astrarre.rendering.v0.api.util.Polygon;
 import io.github.devtech.Devtech;
+import io.github.devtech.api.registry.DDrawables;
 import io.github.devtech.api.registry.DTextures;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 public class ABar extends ADrawable implements Interactable {
-	public static final DrawableRegistry.Entry ENTRY = DrawableRegistry.registerForward(Devtech.id2(""), ABar::new);
+
 	public final SyncedProperty<Float> percentage = this.createClientSyncedProperty(NBTType.FLOAT, 0f);
 	/**
 	 * the 'minimum required' "juice" for this recipe, -1 for none
@@ -35,7 +36,7 @@ public class ABar extends ADrawable implements Interactable {
 	@Environment (EnvType.CLIENT) public boolean hoverFirst, hoverNext, hoverPin;
 
 	public ABar(float width, float height, Text fill, Text pin, Text excess) {
-		this(ENTRY, width, height, fill, pin, excess);
+		this(DDrawables.BAR, width, height, fill, pin, excess);
 	}
 
 	protected ABar(DrawableRegistry.@Nullable Entry id, float width, float height, Text fill, @Nullable Text pin, @Nullable Text excess) {
@@ -48,7 +49,7 @@ public class ABar extends ADrawable implements Interactable {
 		this.red = excess;
 	}
 
-	protected ABar(DrawableRegistry.Entry entry, NBTagView view) {
+	public ABar(DrawableRegistry.Entry entry, NBTagView view) {
 		super(entry);
 		this.width = view.getFloat("width");
 		this.height = view.getFloat("height");
@@ -60,6 +61,7 @@ public class ABar extends ADrawable implements Interactable {
 			this.red = Text.Serializer.fromJson(view.getString("red"));
 		} else this.red = null;
 	}
+
 
 	@Override
 	protected void render0(RootContainer container, Graphics3d graphics, float tickDelta) {

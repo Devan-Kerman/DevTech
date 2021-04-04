@@ -3,6 +3,7 @@ package io.github.devtech.api;
 import io.github.devtech.api.datagen.ResourceGenerator;
 import io.github.devtech.api.datagen.block.StandardBlockStateGenerator;
 import io.github.devtech.api.datagen.item.BlockItemGenerator;
+import io.github.devtech.api.datagen.item.DevtechBlockItemGenerator;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -23,7 +24,6 @@ public abstract class StandardDevtechMachine extends FacingDevtechMachine {
 	@Override
 	public ResourceGenerator[] getGenerators() {
 		return new ResourceGenerator[] {
-				new BlockItemGenerator(this.id),
 				new StandardBlockStateGenerator(this.id)
 		};
 	}

@@ -18,5 +18,5 @@ public interface PortAccess {
 	 * if return true and the port is null, the engine is expected to handle dropping the item
 	 * @return true if the port can be installed
 	 */
-	boolean install(Direction direction, @Nullable Port port);
+	boolean setPort(Direction direction, @Nullable Port port);
 }

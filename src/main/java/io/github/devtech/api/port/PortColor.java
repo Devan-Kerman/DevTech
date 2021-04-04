@@ -21,17 +21,21 @@ public enum PortColor {
 	BLUE(0x0000ff, Formatting.BLUE),
 	PURPLE(0xff00ff, Formatting.LIGHT_PURPLE);
 
+	public static final List<PortColor> COLORS = ImmutableList.copyOf(values());
+	public static final Map<String, PortColor> COLORS_BY_NAME = Arrays.stream(values())
+			                                                            .collect(ImmutableMap.toImmutableMap(Enum::name, Function.identity()));
 	public final int color;
 	public final Formatting formatting;
-	public static final List<PortColor> COLORS = ImmutableList.copyOf(values());
-	public static final Map<String, PortColor> COLORS_BY_NAME = Arrays.stream(values()).collect(ImmutableMap.toImmutableMap(Enum::name, Function.identity()));
 
-	PortColor(int color, Formatting formatting) {this.color = color | 0xff000000;
+	PortColor(int color, Formatting formatting) {
+		this.color = color | 0xff000000;
 		this.formatting = formatting;
 	}
 
 	public static PortColor forName(String color) {
-		if(color == null) return NONE;
+		if (color == null) {
+			return NONE;
+		}
 		return COLORS_BY_NAME.getOrDefault(color, NONE);
 	}
 
