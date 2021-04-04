@@ -1,46 +1,52 @@
 package io.github.devtech.base.gui;
 
+import java.util.Objects;
+
 import io.github.astrarre.gui.v0.api.DrawableRegistry;
-import io.github.astrarre.gui.v0.api.RootContainer;
-import io.github.astrarre.gui.v0.fabric.adapter.slot.ABlockEntityInventorySlot;
+import io.github.astrarre.gui.v0.fabric.adapter.slot.ASlot;
+import io.github.astrarre.itemview.v0.api.Serializer;
 import io.github.astrarre.itemview.v0.api.nbt.NBTagView;
-import io.github.astrarre.rendering.v0.api.Graphics3d;
+import io.github.astrarre.itemview.v0.fabric.FabricSerializers;
+import io.github.astrarre.util.v0.api.Id;
+import io.github.devtech.Devtech;
 import io.github.devtech.api.DevtechMachine;
-import io.github.devtech.api.port.PortColor;
 import io.github.devtech.api.registry.DDrawables;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
-public class APortSlot<B extends DevtechMachine.DefaultBlockEntity & Inventory> extends ABlockEntityInventorySlot<B> {
-	public final PortColor color;
-
-	public APortSlot(B entity, int index, PortColor color) {
-		this(DDrawables.PORT_SLOT, entity, index, color);
-	}
-
-	protected APortSlot(DrawableRegistry.Entry id, B entity, int index, PortColor color) {
-		super(id, entity, index);
-		this.color = color;
+public class APortSlot extends ASlot {
+	public final DevtechMachine.DefaultBlockEntity entity;
+	public final int port;
+	public APortSlot(DevtechMachine.DefaultBlockEntity entity, int port) {
+		super(DDrawables.PORT_SLOT, (Inventory) entity.sortedPorts.get(port), 0);
+		this.entity = entity;
+		this.port = port;
 	}
 
 	public APortSlot(DrawableRegistry.Entry id, NBTagView input) {
 		super(id, input);
-		this.color = PortColor.forName(input.getString("color"));
+		this.entity = null;
+		this.port = -1;
 	}
 
 	@Override
-	protected void write0(RootContainer container, NBTagView.Builder output) {
-		super.write0(container, output);
-		output.putString("color", this.color.name());
-	}
-
-	@Override
-	protected void renderBackground(Graphics3d graphics, float tickDelta) {
-		super.renderBackground(graphics, tickDelta);
-		if(this.color != PortColor.NONE) {
-			int color = this.color.color & 0x44ffffff;
-			graphics.fillRect(18, 1, color);
-			graphics.fillRect(0, 1, 1, 17, color);
+	protected Inventory readInventoryData(NBTagView input) {
+		MinecraftClient client = MinecraftClient.getInstance();
+		if (client.world != null && Objects.equals(client.world.getRegistryKey().getValue(), Serializer.ID.read(input, "world"))) {
+			World world = client.world;
+			BlockPos pos = FabricSerializers.BLOCK_POS.read(input, "pos");
+			return (Inventory) ((DevtechMachine.DefaultBlockEntity)world.getBlockEntity(pos)).sortedPorts.get(input.getInt("port"));
 		}
+		return null;
+	}
+
+	@Override
+	protected void writeInventoryData(NBTagView.Builder output, Inventory inventory) {
+		Serializer.ID.save(output, "world", Id.of(this.entity.getWorld().getRegistryKey().getValue()));
+		FabricSerializers.BLOCK_POS.save(output, "pos", this.entity.getPos());
+		output.putInt("port", this.port);
 	}
 }

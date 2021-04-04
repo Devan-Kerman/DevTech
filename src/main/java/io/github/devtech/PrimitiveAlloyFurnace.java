@@ -103,25 +103,15 @@ public class PrimitiveAlloyFurnace extends StandardDevtechMachine {
 			}
 
 			@Override
-			public SidedInventory getInventory(DefaultBlockEntity be, List<Port> ports, List<Direction> absoluteDirections) {
-				Inventory[] inventories = new Inventory[6];
-				Arrays.fill(inventories, EmptyInventory.INSTANCE);
-				for (int i = 0; i < absoluteDirections.size(); i++) {
-					inventories[absoluteDirections.get(i).ordinal()] = (InventoryPort) ports.get(i);
-				}
-				return new CombinedSidedInventory(inventories[0], inventories[1], inventories[2], inventories[3], inventories[4], inventories[5]);
-			}
-
-			@Override
 			public RootContainer openGui(DefaultBlockEntity blockEntity, PlayerEntity player) {
 				if (player instanceof ServerPlayerEntity) {
 					Tile tile = (Tile) blockEntity;
 					return RootContainer.open((NetworkMember) player, cont -> {
 						List<ASlot> playerSlots = new ArrayList<>(36);
-						ASlot inputA = new APortSlot<>((Tile)blockEntity, 0, PortColor.RED);
-						ASlot inputB = new APortSlot<>((Tile)blockEntity, 1, PortColor.BLUE);
-						ASlot fuel = new APortSlot<>((Tile)blockEntity, 2, PortColor.GREEN);
-						ASlot output = new ABlockEntityInventorySlot<>((Tile)blockEntity, 3);
+						ASlot inputA = new APortSlot(blockEntity, 0);
+						ASlot inputB = new APortSlot(blockEntity, 1);
+						ASlot fuel = new APortSlot(blockEntity, 2);
+						ASlot output = new APortSlot(blockEntity, 3);
 						List<ASlot> prioritySlots = ImmutableList.of(inputA, inputB, fuel, output);
 						ACenteringPanel panel = this.defaultGui(cont, player, playerSlots, prioritySlots);
 						panel.add(new ALabel(DLang.BASIC_ALLOY_KILN, 0x404040, false).setTransformation(Transformation.translate(5, 5, 0)));
@@ -171,7 +161,7 @@ public class PrimitiveAlloyFurnace extends StandardDevtechMachine {
 						.withBlock(Direction.NORTH, Devtech.id("block/tier2/basic_alloy_kiln_on"))), "block/primitive_alloy_furnace_lit");
 	}
 
-	public class Tile extends FacingBlockEntity implements InventoryDelegate {
+	public class Tile extends FacingBlockEntity {
 		public int lastTotalProgress = 1, lastBurnTime = 1;
 		public final Val<Integer> progress = Val.ofInteger(), burnTime = Val.ofInteger();
 
@@ -185,16 +175,6 @@ public class PrimitiveAlloyFurnace extends StandardDevtechMachine {
 		@Override
 		public boolean setPort(Direction direction, @Nullable Port port) {
 			return false;
-		}
-
-		@Override
-		public Inventory getInventoryDelegate() {
-			return CombinedInventory.combine(
-					((InventoryPort) this.sortedPorts.get(0)),
-					((InventoryPort) this.sortedPorts.get(1)),
-					((InventoryPort) this.sortedPorts.get(2)),
-					((InventoryPort) this.sortedPorts.get(3))
-			);
 		}
 	}
 }

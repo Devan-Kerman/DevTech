@@ -18,6 +18,8 @@ import io.github.astrarre.itemview.v0.api.nbt.NBTagView;
 import io.github.astrarre.itemview.v0.fabric.FabricViews;
 import io.github.astrarre.networking.v0.api.network.NetworkMember;
 import io.github.astrarre.rendering.v0.api.Transformation;
+import io.github.astrarre.transfer.v0.fabric.inventory.CombinedSidedInventory;
+import io.github.astrarre.transfer.v0.fabric.inventory.EmptyInventory;
 import io.github.devtech.Devtech;
 import io.github.devtech.api.access.PortAccess;
 import io.github.devtech.api.datagen.ResourceGenerator;
@@ -34,6 +36,7 @@ import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -109,7 +112,30 @@ public abstract class DevtechMachine {
 
 		public void tick(DefaultBlockEntity blockEntity, List<Port> ports) {}
 
-		public SidedInventory getInventory(DefaultBlockEntity be, List<Port> ports, List<Direction> absoluteDirections) {return null;}
+		public SidedInventory getInventory(DefaultBlockEntity be, List<Port> ports, List<Direction> absoluteDirections) {
+			Inventory[] inventories = {
+					EmptyInventory.INSTANCE,
+					EmptyInventory.INSTANCE,
+					EmptyInventory.INSTANCE,
+					EmptyInventory.INSTANCE,
+					EmptyInventory.INSTANCE,
+					EmptyInventory.INSTANCE
+			};
+			boolean invs = false;
+			for (int i = 0; i < absoluteDirections.size(); i++) {
+				Port port = ports.get(i);
+				if (port instanceof Inventory) {
+					inventories[absoluteDirections.get(i).ordinal()] = (Inventory) port;
+					invs = true;
+				}
+			}
+
+			if (invs) {
+				return new CombinedSidedInventory(inventories[0], inventories[1], inventories[2], inventories[3], inventories[4], inventories[5]);
+			} else {
+				return null;
+			}
+		}
 
 		protected ACenteringPanel defaultGui(RootContainer container, PlayerEntity player, List<ASlot> playerSlot, List<ASlot> prioritySlots) {
 			ACenteringPanel center = new ACenteringPanel(175, 165);
@@ -186,7 +212,7 @@ public abstract class DevtechMachine {
 				Configuration active = entity.activeConfig;
 				if (active != null) {
 					RootContainer container = active.openGui(entity, player);
-					if(container != null) {
+					if (container != null) {
 						entity.openContainers.put(container, Unit.INSTANCE);
 						container.addCloseListener(() -> entity.openContainers.remove(container));
 					}
@@ -201,8 +227,8 @@ public abstract class DevtechMachine {
 		protected final WeakHashMap<RootContainer, Unit> openContainers = new WeakHashMap<>();
 		// cannot have 2 of the same port type
 		protected final Map<Direction, Port> relativePorts = new EnumMap<>(Direction.class);
-		protected boolean recomputeConfig = true;
 		public List<Port> sortedPorts;
+		protected boolean recomputeConfig = true;
 		protected Configuration activeConfig;
 
 		public DefaultBlockEntity() {
@@ -236,14 +262,11 @@ public abstract class DevtechMachine {
 				this.sortedPorts = sorted;
 			}
 
-			if(this.world == null || this.world.isClient) return;
+			if (this.world == null || this.world.isClient) {
+				return;
+			}
 			this.relativePorts.forEach((direction, port) -> port.tick(this, this.derelativize(direction)));
 			this.activeConfig.tick(this, this.sortedPorts);
-		}
-
-		@Override
-		public void markRemoved() {
-			super.markRemoved();
 		}
 
 		protected Direction derelativize(Direction relative) {
@@ -290,15 +313,14 @@ public abstract class DevtechMachine {
 		}
 
 		@Override
+		public void markRemoved() {
+			super.markRemoved();
+		}
+
+		@Override
 		public void setPos(BlockPos pos) {
 			super.setPos(pos);
 			this.onReposition();
-		}
-
-		public void closeScreens() {
-			this.openContainers.keySet().stream().map(RootContainer::getViewer).filter(Objects::nonNull).map(NetworkMember::to)
-					.forEach(ServerPlayerEntity::closeScreenHandler);
-			this.openContainers.clear();
 		}
 
 		protected void onReposition() {}
@@ -319,8 +341,16 @@ public abstract class DevtechMachine {
 			this.activeConfig = null;
 			this.closeScreens();
 			Port old = this.relativePorts.put(direction, port);
-			if(old != null) old.invalidate();
+			if (old != null) {
+				old.invalidate();
+			}
 			return true;
+		}
+
+		public void closeScreens() {
+			this.openContainers.keySet().stream().map(RootContainer::getViewer).filter(Objects::nonNull).map(NetworkMember::to)
+					.forEach(ServerPlayerEntity::closeScreenHandler);
+			this.openContainers.clear();
 		}
 	}
 
