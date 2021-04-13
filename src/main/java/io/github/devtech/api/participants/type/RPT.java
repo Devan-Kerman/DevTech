@@ -1,9 +1,10 @@
 package io.github.devtech.api.participants.type;
 
-public final class RPM {
-	public final int rpm;
-	public RPM(int rpm) {
-		this.rpm = rpm;
+public final class RPT {
+	public final int rpt;
+
+	public RPT(int rpt) {
+		this.rpt = rpt;
 	}
 
 	@Override
@@ -11,17 +12,17 @@ public final class RPM {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof RPM)) {
+		if (!(o instanceof RPT)) {
 			return false;
 		}
 
-		RPM energy = (RPM) o;
+		RPT energy = (RPT) o;
 
-		return this.rpm == energy.rpm;
+		return this.rpt == energy.rpt;
 	}
 
 	@Override
 	public int hashCode() {
-		return this.rpm;
+		return this.rpt;
 	}
 }

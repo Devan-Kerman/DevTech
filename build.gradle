@@ -12,12 +12,14 @@ group = project.maven_group
 
 repositories {
     mavenLocal()
-    maven {
-        url 'https://jitpack.io'
-    }
-    maven {
-        url = 'https://raw.githubusercontent.com/Devan-Kerman/Devan-Repo/master/'
-    }
+    maven {url 'https://jitpack.io'}
+    maven {url 'https://raw.githubusercontent.com/Devan-Kerman/Devan-Repo/master/'}
+    maven {url 'https://maven.dblsaiko.net/'}
+    maven {url 'https://maven.shedaniel.me/'}
+    maven {url 'http://server.bbkr.space:8081/artifactory/libs-release'}
+    maven {url 'https://maven.terraformersmc.com/releases/'}
+    maven {url "https://dl.bintray.com/ladysnake/libs"}
+    maven {url "https://maven.abusedmaster.xyz/"}
 }
 
 dependencies {
@@ -28,6 +30,31 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation 'net.devtech:arrp:0.3.7'
     modImplementation 'io.github.astrarre:astrarre-fabric:0.0.0'
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:5.11.188"
+    modRuntime("me.shedaniel:architectury-fabric:1.10.139")
+    include(modImplementation('io.github.ladysnake:PlayerAbilityLib:1.2.1'))
+    include(modImplementation('dev.emi:trinkets:2.6.7'))
+    modRuntime("me.shedaniel:RoughlyEnoughItems:5.11.188") {
+        exclude module: 'fabric-loader'
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    modRuntime('grondag:canvas-mc116:1.0.1267') {
+        exclude group: 'me.shedaniel.cloth'
+        exclude group: 'me.shedaniel.cloth.api'
+        exclude group: 'io.github.prospector', module: 'modmenu'
+        exclude module: 'fabric-loader'
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    modRuntime( 'com.terraformersmc:modmenu:1.16.8') {
+        exclude group: 'me.shedaniel.cloth'
+        exclude group: 'me.shedaniel.cloth.api'
+        exclude module: 'fabric-loader'
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    modRuntime('com.github.astei:lazydfu:0.1.1') {
+        exclude module: 'fabric-loader'
+        exclude group: 'net.fabricmc.fabric-api'
+    }
 }
 
 processResources {
@@ -76,9 +103,16 @@ publishing {
         }
     }
 
-    // select the repositories you want to publish to
     repositories {
-        // uncomment to publish to the local maven
-        // mavenLocal()
+        maven {
+            def mavenUrl = project.hasProperty('maven_url') ? project.property('maven_url') : ""
+            url mavenUrl
+            if(mavenUrl.startsWith("http")) {
+                credentials {
+                    username project.hasProperty('maven_username') ? project.property('maven_username') : ""
+                    password project.hasProperty('maven_password') ? project.property('maven_password') : ""
+                }
+            }
+        }
     }
 }

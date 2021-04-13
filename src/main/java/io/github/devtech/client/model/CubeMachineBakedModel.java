@@ -17,16 +17,17 @@ public class CubeMachineBakedModel extends AbstractMachineBakedModel {
 	public CubeMachineBakedModel(SpriteIdentifier particles, CubeData data) {
 		super(particles);
 		this.data = data;
-		this.textureDependencies.addAll(data.identifiers.values());
+		data.identifiers.forEach((direction, faceData) -> this.textureDependencies.add(faceData.identifier));
 	}
 
 	@Override
-	protected void build(Renderer renderer,
+	protected boolean build(Renderer renderer,
 			QuadEmitter emitter,
 			ModelLoader loader,
 			Function<SpriteIdentifier, Sprite> textureGetter,
 			ModelBakeSettings rotationContainer,
 			Identifier modelId) {
 		AbstractBakedModel.buildCube(rotationContainer, emitter, textureGetter, this.data);
+		return true;
 	}
 }

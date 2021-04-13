@@ -1,6 +1,7 @@
 package io.github.devtech.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import io.github.devtech.Devtech;
 import io.github.devtech.api.access.PortAccess;
 import io.github.devtech.api.datagen.ResourceGenerator;
 import io.github.devtech.api.datagen.item.BlockItemGenerator;
+import io.github.devtech.api.datagen.loot.NormalBlockLootTable;
 import io.github.devtech.api.port.Port;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +47,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.Unit;
 import net.minecraft.util.hit.BlockHitResult;
@@ -99,7 +102,7 @@ public abstract class DevtechMachine {
 	}
 
 	public ResourceGenerator[] getGenerators() {
-		return new ResourceGenerator[] {new BlockItemGenerator(this.id)};
+		return new ResourceGenerator[] {new BlockItemGenerator(this.id), new NormalBlockLootTable(this.id)};
 	}
 
 	@Environment (EnvType.CLIENT)
@@ -107,8 +110,16 @@ public abstract class DevtechMachine {
 
 	public static class Configuration {
 		public final List<Port.Type> portTypes;
+		public final boolean hasGui;
 
-		public Configuration(List<Port.Type> types) {this.portTypes = types;}
+		public Configuration(boolean gui, Port.Type...types) {
+			this.portTypes = Arrays.asList(types);
+			this.hasGui = gui;
+		}
+
+		public Configuration(List<Port.Type> types, boolean gui) {this.portTypes = types;
+			this.hasGui = gui;
+		}
 
 		public void tick(DefaultBlockEntity blockEntity, List<Port> ports) {}
 
@@ -137,7 +148,7 @@ public abstract class DevtechMachine {
 			}
 		}
 
-		protected ACenteringPanel defaultGui(RootContainer container, PlayerEntity player, List<ASlot> playerSlot, List<ASlot> prioritySlots) {
+		public static ACenteringPanel defaultGui(RootContainer container, PlayerEntity player, List<ASlot> playerSlot, List<ASlot> prioritySlots) {
 			ACenteringPanel center = new ACenteringPanel(175, 165);
 			container.getContentPanel().add(new ADarkenedBackground());
 			center.add(new ABeveledRectangle(center));
@@ -169,8 +180,7 @@ public abstract class DevtechMachine {
 			return center;
 		}
 
-		public RootContainer openGui(DefaultBlockEntity blockEntity, PlayerEntity player) {
-			return null;
+		public void openGui(DefaultBlockEntity blockEntity, PlayerEntity player, RootContainer container) {
 		}
 	}
 
@@ -210,16 +220,39 @@ public abstract class DevtechMachine {
 			if (!world.isClient) {
 				DefaultBlockEntity entity = (DefaultBlockEntity) world.getBlockEntity(pos);
 				Configuration active = entity.activeConfig;
-				if (active != null) {
-					RootContainer container = active.openGui(entity, player);
-					if (container != null) {
+				if (active != null && active.hasGui && player instanceof ServerPlayerEntity) {
+					RootContainer.open((NetworkMember) player, container -> {
+						active.openGui(entity, player, container);
 						entity.openContainers.put(container, Unit.INSTANCE);
 						container.addCloseListener(() -> entity.openContainers.remove(container));
-					}
+						return null;
+					});
 				}
 				return ActionResult.CONSUME;
 			}
 			return ActionResult.CONSUME;
+		}
+
+		@Override
+		public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+			if (!state.isOf(newState.getBlock())) {
+				DefaultBlockEntity blockEntity = (DefaultBlockEntity) world.getBlockEntity(pos);
+				if (blockEntity.isIntegrated()) {
+					for (Port port : blockEntity.sortedPorts) {
+						if(port instanceof Inventory) {
+							ItemScatterer.spawn(world, pos, (Inventory) blockEntity);
+						}
+					}
+				} else {
+					// todo drop Port items
+
+				}
+
+				if(blockEntity instanceof Inventory) {
+					world.updateComparators(pos, this);
+				}
+				super.onStateReplaced(state, world, pos, newState, moved);
+			}
 		}
 	}
 
@@ -352,6 +385,11 @@ public abstract class DevtechMachine {
 					.forEach(ServerPlayerEntity::closeScreenHandler);
 			this.openContainers.clear();
 		}
+
+		/**
+		 * @return true if the current installation is an integrated set (it means the ports wont drop as items)
+		 */
+		public boolean isIntegrated() {return false;}
 	}
 
 }

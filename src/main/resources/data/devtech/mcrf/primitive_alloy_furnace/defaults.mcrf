@@ -1,1 +1,2 @@
-#c:copper_ingots x3 + #c:tin_ingots + 200 --[devtech:primitive_alloy_furnace]-> devtech:bronze_ingot x4
+#c:copper_ingots x3 + #c:tin_ingots + 200 --> devtech:bronze_ingot x4
+#c:bronze_ingots + #c:tin_ingots + 200 --> devtech:speculum_ingot x2

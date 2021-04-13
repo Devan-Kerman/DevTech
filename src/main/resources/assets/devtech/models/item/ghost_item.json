@@ -1,0 +1,14 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "devtech:item/ghost_item_inactive"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "devtech:active": 1
+      },
+      "model": "devtech:item/ghost_item_active"
+    }
+  ]
+}

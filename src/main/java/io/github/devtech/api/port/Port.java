@@ -1,6 +1,7 @@
 package io.github.devtech.api.port;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.github.astrarre.itemview.v0.api.Serializer;
 import io.github.astrarre.itemview.v0.api.nbt.NBTagView;
@@ -18,8 +19,14 @@ import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 
 public abstract class Port {
 	public static final Registry<Entry> REGISTRY = FabricRegistryBuilder.createSimple(Entry.class, Devtech.id("port")).buildAndRegister();
-	public static final Serializer<Port> SERIALIZER = Serializer.of((t) -> REGISTRY.get(FabricSerializers.IDENTIFIER.read(t.asTag(), "portId"))
-			                                                                       .from(t.asTag()), (port) -> {
+	public static final Serializer<Port> SERIALIZER = Serializer.of((t) -> {
+		Port.Entry port = t.asTag().hasKey("portId") ? REGISTRY.get(FabricSerializers.IDENTIFIER.read(t.asTag(), "portId")) : null;
+		if(port == null) {
+			return null;
+		} else {
+			return port.from(t.asTag());
+		}
+	}, (port) -> {
 		NBTagView.Builder builder = NBTagView.builder();
 		FabricSerializers.IDENTIFIER.save(builder, "portId", REGISTRY.getId(port.getEntry()));
 		port.write(builder);
@@ -38,7 +45,7 @@ public abstract class Port {
 	 * deserialize the port from the data
 	 */
 	public Port(NBTagView tag) {
-		this.color = PortColor.forName(tag.getString("color"));
+		this.color = PortColor.forName(tag.getString("color", "NONE"));
 	}
 
 	/**
@@ -54,11 +61,6 @@ public abstract class Port {
 
 	public abstract Entry getEntry();
 
-	@Environment (EnvType.CLIENT)
-	public abstract SpriteIdentifier getTexture();
-
-	@Environment (EnvType.CLIENT)
-	public abstract SpriteIdentifier getBarTexture();
 
 	public Port.Type getType() {
 		if(this.type == null) this.type = new Port.Type(this.getEntry(), this.getColor());
@@ -75,8 +77,19 @@ public abstract class Port {
 		return this;
 	}
 
-	public interface Entry {
-		Port from(NBTagView tag);
+	public static final class Entry {
+		public final Function<NBTagView, Port> function;
+		@Environment (EnvType.CLIENT)
+		public SpriteIdentifier texture;
+
+		@Environment (EnvType.CLIENT)
+		public SpriteIdentifier bar;
+
+		public Entry(Function<NBTagView, Port> function) {this.function = function;}
+
+		public Port from(NBTagView tag) {
+			return this.function.apply(tag);
+		}
 	}
 
 	public static class Type {

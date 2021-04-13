@@ -8,6 +8,8 @@ public interface DTextures {
 	Sprite.Sized BAR = gui(0, 0, 256, 8);
 	Sprite.Sized PIN = gui(0, 8, 3, 8);
 	Sprite.Sized WHEEL_SMALL = gui(3, 8, 8, 8);
+	Sprite.Sized SUN_OFF = gui(11, 8, 8, 8);
+	Sprite.Sized SUN_ON = gui(19, 8, 8, 8);
 
 
 	static Sprite.Sized gui(int offX, int offY, int width, int height) {

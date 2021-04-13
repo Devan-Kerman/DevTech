@@ -100,6 +100,10 @@ public abstract class FacingDevtechMachine extends DevtechMachine {
 			return this.getPort(FacingDevtechMachine.this.relativize(direction, this.getCachedState()));
 		}
 
+		@Override
+		public boolean setPort(Direction direction, @Nullable Port port) {
+			return super.setPort(FacingDevtechMachine.this.relativize(direction, this.getCachedState()), port);
+		}
 	}
 
 	public class FacingBlock extends DefaultBlock {
@@ -113,7 +117,7 @@ public abstract class FacingDevtechMachine extends DevtechMachine {
 		public BlockState getPlacementState(ItemPlacementContext ctx) {
 			for (Direction direction : ctx.getPlacementDirections()) {
 				if(direction.getOffsetY() == 0) {
-					return this.getDefaultState().with(HorizontalFacingBlock.FACING, direction);
+					return this.getDefaultState().with(HorizontalFacingBlock.FACING, direction.getOpposite());
 				}
 			}
 			return super.getPlacementState(ctx);

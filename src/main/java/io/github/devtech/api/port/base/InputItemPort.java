@@ -32,10 +32,4 @@ public class InputItemPort extends InventoryPort implements InventoryDelegate {
 	public Entry getEntry() {
 		return DPorts.ITEM_INPUT;
 	}
-
-	@Override
-	@Environment (EnvType.CLIENT)
-	public SpriteIdentifier getTexture() {
-		return DSprites.ITEM_INPUT;
-	}
 }

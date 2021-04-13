@@ -1,8 +1,11 @@
 package io.github.devtech.client.model;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.Collection;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import io.github.devtech.Devtech;
 import io.github.devtech.api.FacingDevtechMachine;
 
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -11,7 +14,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
 public class CubeData {
-	public final Map<Direction, SpriteIdentifier> identifiers = new EnumMap<>(Direction.class);
+	public final Multimap<Direction, FaceData> identifiers = ArrayListMultimap.create(Devtech.DIRECTIONS.length, 1);
 
 	public CubeData() {
 	}
@@ -21,86 +24,64 @@ public class CubeData {
 	 */
 	public CubeData rotate(Direction direction) {
 		CubeData data = new CubeData();
-		data.identifiers.put(direction, this.identifiers.get(Direction.NORTH));
+		data.identifiers.putAll(direction, this.identifiers.get(Direction.NORTH));
 		Direction clockwise = FacingDevtechMachine.getClockwise(direction);
-		data.identifiers.put(clockwise, this.identifiers.get(Direction.EAST));
-		data.identifiers.put(clockwise.getOpposite(), this.identifiers.get(Direction.WEST));
-		data.identifiers.put(direction.getOpposite(), this.identifiers.get(Direction.SOUTH));
+		data.identifiers.putAll(clockwise, this.identifiers.get(Direction.EAST));
+		data.identifiers.putAll(clockwise.getOpposite(), this.identifiers.get(Direction.WEST));
+		data.identifiers.putAll(direction.getOpposite(), this.identifiers.get(Direction.SOUTH));
 		Direction up = FacingDevtechMachine.getUp(direction);
-		data.identifiers.put(up, this.identifiers.get(Direction.UP));
-		data.identifiers.put(up.getOpposite(), this.identifiers.get(Direction.DOWN));
+		data.identifiers.putAll(up, this.identifiers.get(Direction.UP));
+		data.identifiers.putAll(up.getOpposite(), this.identifiers.get(Direction.DOWN));
 		return data;
-	}
-
-
-	public CubeData withBlock(Direction direction, Identifier identifier) {
-		return this.with(direction, new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, identifier));
-	}
-
-	public CubeData with(Direction direction, SpriteIdentifier identifier) {
-		CubeData cubeData = new CubeData();
-		cubeData.identifiers.putAll(this.identifiers);
-		cubeData.identifiers.put(direction, identifier);
-		return cubeData;
 	}
 
 	public static CubeData withAll(Identifier identifier) {
 		CubeData data = new CubeData();
+		FaceData face = new FaceData(new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, identifier), false);
 		for (int i = 0; i < 6; i++) {
-			data.identifiers.put(Direction.byId(i), new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, identifier));
+			data.identifiers.put(Direction.byId(i), face);
 		}
 		return data;
 	}
 
-	public CubeData withNorthBlock(Identifier identifier) {
-		return this.withBlock(Direction.NORTH, identifier);
+	public CubeData addBlock(Direction direction, Identifier identifier, boolean isEmissive) {
+		return this.add(direction, new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, identifier), isEmissive);
 	}
 
-	public CubeData withNorth(SpriteIdentifier identifier) {
-		return this.with(Direction.NORTH, identifier);
+	/**
+	 * add an overlay texture
+	 */
+	public CubeData add(Direction direction, SpriteIdentifier identifier, boolean isEmissive) {
+		CubeData cubeData = new CubeData();
+		cubeData.identifiers.putAll(this.identifiers);
+		cubeData.identifiers.put(direction, new FaceData(identifier, isEmissive));
+		return cubeData;
 	}
 
-	public CubeData withSouthBlock(Identifier identifier) {
-		return this.withBlock(Direction.SOUTH, identifier);
+	public CubeData withBlock(Direction direction, Identifier identifier, boolean isEmissive) {
+		return this.set(direction, new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, identifier), isEmissive);
 	}
 
-	public CubeData withSouth(SpriteIdentifier identifier) {
-		return this.with(Direction.SOUTH, identifier);
+	public CubeData set(Direction direction, SpriteIdentifier identifier, boolean isEmissive) {
+		CubeData cubeData = new CubeData();
+		cubeData.identifiers.putAll(this.identifiers);
+		cubeData.identifiers.removeAll(direction);
+		cubeData.identifiers.put(direction, new FaceData(identifier, isEmissive));
+		return cubeData;
 	}
 
-	public CubeData withWestBlock(Identifier identifier) {
-		return this.withBlock(Direction.WEST, identifier);
-	}
 
-	public CubeData withWest(SpriteIdentifier identifier) {
-		return this.with(Direction.WEST, identifier);
-	}
-
-	public CubeData withEastBlock(Identifier identifier) {
-		return this.withBlock(Direction.EAST, identifier);
-	}
-
-	public CubeData withEast(SpriteIdentifier identifier) {
-		return this.with(Direction.EAST, identifier);
-	}
-
-	public CubeData withUpBlock(Identifier identifier) {
-		return this.withBlock(Direction.UP, identifier);
-	}
-
-	public CubeData withUp(SpriteIdentifier identifier) {
-		return this.with(Direction.UP, identifier);
-	}
-
-	public CubeData withDownBlock(Identifier identifier) {
-		return this.withBlock(Direction.DOWN, identifier);
-	}
-
-	public CubeData withDown(SpriteIdentifier identifier) {
-		return this.with(Direction.DOWN, identifier);
-	}
-
-	public SpriteIdentifier get(Direction direction) {
+	public Collection<FaceData> get(Direction direction) {
 		return this.identifiers.get(direction);
+	}
+
+	public static final class FaceData {
+		public final SpriteIdentifier identifier;
+		public final boolean isEmissive;
+
+		public FaceData(SpriteIdentifier identifier, boolean emissive) {
+			this.identifier = identifier;
+			this.isEmissive = emissive;
+		}
 	}
 }

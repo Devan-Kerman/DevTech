@@ -4,6 +4,9 @@
   "package": "io.github.devtech.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "EntityMixin_NoClipImpl",
+    "LivingEntityAccess",
+    "PlayerEntityMixin_NoClipImpl",
     "ShovelItemAccess"
   ],
   "client": [

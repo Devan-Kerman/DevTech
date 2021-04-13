@@ -26,12 +26,6 @@ public class OutputItemPort extends InventoryPort {
 	}
 
 	@Override
-	@Environment (EnvType.CLIENT)
-	public SpriteIdentifier getTexture() {
-		return DSprites.ITEM_OUTPUT;
-	}
-
-	@Override
 	public boolean isValid(int slot, ItemStack stack) {
 		return false;
 	}

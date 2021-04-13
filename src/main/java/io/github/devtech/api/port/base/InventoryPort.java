@@ -5,7 +5,6 @@ import io.github.astrarre.itemview.v0.api.nbt.NbtValue;
 import io.github.astrarre.transfer.v0.fabric.inventory.InventoryDelegate;
 import io.github.devtech.api.port.Port;
 import io.github.devtech.api.port.PortColor;
-import io.github.devtech.api.registry.DPorts;
 import io.github.devtech.api.registry.DSprites;
 
 import net.minecraft.block.entity.BlockEntity;
@@ -35,13 +34,10 @@ public abstract class InventoryPort extends Port implements InventoryDelegate {
 	public InventoryPort(NBTagView tag) {
 		super(tag);
 		SimpleInventory inv = new SimpleInventory(1);
-		inv.readTags((ListTag) tag.getValue("inventory"));
+		if (tag.hasKey("inventory")) {
+			inv.readTags((ListTag) tag.getValue("inventory"));
+		}
 		this.inventory = inv;
-	}
-
-	@Override
-	public void tick(BlockEntity entity, Direction face) {
-		super.tick(entity, face);
 	}
 
 	@Override
@@ -50,11 +46,9 @@ public abstract class InventoryPort extends Port implements InventoryDelegate {
 		tag.putValue("inventory", (NbtValue) this.inventory.getTags());
 	}
 
-
 	@Override
-	@Environment (EnvType.CLIENT)
-	public SpriteIdentifier getBarTexture() {
-		return DSprites.SMALL_BAR;
+	public void tick(BlockEntity entity, Direction face) {
+		super.tick(entity, face);
 	}
 
 	@Override

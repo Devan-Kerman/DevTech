@@ -4,10 +4,12 @@ import io.github.devtech.api.datagen.ResourceGenerator;
 import io.github.devtech.api.datagen.block.StandardBlockStateGenerator;
 import io.github.devtech.api.datagen.item.BlockItemGenerator;
 import io.github.devtech.api.datagen.item.DevtechBlockItemGenerator;
+import io.github.devtech.api.datagen.loot.NormalBlockLootTable;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
@@ -24,8 +26,14 @@ public abstract class StandardDevtechMachine extends FacingDevtechMachine {
 	@Override
 	public ResourceGenerator[] getGenerators() {
 		return new ResourceGenerator[] {
-				new StandardBlockStateGenerator(this.id)
+				new StandardBlockStateGenerator(this.id),
+				new NormalBlockLootTable(this.id)
 		};
+	}
+
+	@Override
+	protected AbstractBlock.Settings createBlockSettings() {
+		return AbstractBlock.Settings.copy(Blocks.FURNACE);
 	}
 
 	@Override

@@ -35,6 +35,9 @@ import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
@@ -44,6 +47,12 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 public abstract class AbstractBakedModel implements UnbakedModel {
 	public static final Lazy<Renderer> RENDERER = Lazy.of(RendererAccess.INSTANCE::getRenderer);
+	public static final Lazy<RenderMaterial> EMISSIVE = RENDERER.map(Renderer::materialFinder).map(m -> m.emissive(0, true))
+			                                                    .map(MaterialFinder::find);
+	public static final Lazy<RenderMaterial> EMISSIVE_LAYER = RENDERER.map(Renderer::materialFinder).map(m -> m.emissive(0, true))
+			                                                          .map(r -> r.blendMode(0, BlendMode.TRANSLUCENT)).map(MaterialFinder::find);
+	public static final Lazy<RenderMaterial> TRANSPARENT = RENDERER.map(Renderer::materialFinder).map(r -> r.blendMode(0, BlendMode.TRANSLUCENT))
+			                                                       .map(MaterialFinder::find);
 	protected static final Map<SpriteIdentifier, Sprite> RESOLVED = new ConcurrentHashMap<>();
 	private static final Identifier DEFAULT_BLOCK_MODEL = new Identifier("minecraft:block/block");
 	protected final Set<SpriteIdentifier> textureDependencies = new HashSet<>();
@@ -55,34 +64,41 @@ public abstract class AbstractBakedModel implements UnbakedModel {
 		this.textureDependencies.add(particles);
 	}
 
-
-	protected abstract void build(Renderer renderer, QuadEmitter emitter, ModelLoader loader,
-			Function<SpriteIdentifier, Sprite> textureGetter,
-			ModelBakeSettings rotationContainer,
-			Identifier modelId);
-
-	@Nullable
-	@Override
-	public BakedModel bake(ModelLoader loader,
-			Function<SpriteIdentifier, Sprite> textureGetter,
-			ModelBakeSettings rotationContainer,
-			Identifier modelId) {
-		JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(DEFAULT_BLOCK_MODEL);
-		this.itemTransformation = defaultBlockModel.getTransformations();
-		for (SpriteIdentifier s : this.textureDependencies) {
-			RESOLVED.computeIfAbsent(s, textureGetter);
+	public static void buildCube(ModelBakeSettings rotations, QuadEmitter emitter, Function<SpriteIdentifier, Sprite> textureGetter, CubeData data) {
+		for (Direction direction : Devtech.DIRECTIONS) {
+			Direction transformed = Direction.transform(rotations.getRotation().getMatrix(), direction);
+			boolean isLayer = false;
+			for (CubeData.FaceData identifier : data.identifiers.get(direction)) {
+				emitter.square(transformed, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+				emitter.spriteBake(0, RESOLVED.computeIfAbsent(identifier.identifier, textureGetter), MutableQuadView.BAKE_LOCK_UV);
+				emitter.spriteColor(0, -1, -1, -1, -1);
+				if (identifier.isEmissive) {
+					if (isLayer) {
+						emitter.material(EMISSIVE_LAYER.get());
+					} else {
+						emitter.material(EMISSIVE.get());
+					}
+				} else if (isLayer) {
+					emitter.material(TRANSPARENT.get());
+				}
+				emitter.emit();
+				isLayer = true;
+			}
 		}
-		MeshBuilder builder = RENDERER.get().meshBuilder();
-		this.build(RENDERER.get(), builder.getEmitter(), loader, textureGetter, rotationContainer, modelId);
-		Mesh mesh = builder.build();
-		return new Baked(mesh);
 	}
 
-	public void emitBlockQuads(Mesh mesh, BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+	public void emitBlockQuads(Mesh mesh,
+			BlockRenderView blockView,
+			BlockState state,
+			BlockPos pos,
+			Supplier<Random> randomSupplier,
+			RenderContext context) {
+		if(mesh != null)
 		context.meshConsumer().accept(mesh);
 	}
 
 	public void emitItemQuads(Mesh mesh, ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
+		if(mesh != null)
 		context.meshConsumer().accept(mesh);
 	}
 
@@ -93,28 +109,31 @@ public abstract class AbstractBakedModel implements UnbakedModel {
 	public boolean useAmbientOcclusion() {
 		return true;
 	}
+
 	public boolean hasDepth() {
 		return false;
 	}
+
 	public boolean isSideLit() {
 		return true;
 	}
+
 	public boolean isBuiltin() {
 		return false;
 	}
+
 	public Sprite getParticleSprite() {
 		return RESOLVED.get(this.particles);
 	}
-	public ModelTransformation getItemTransformation() {
-		return this.itemTransformation;
-	}
+
+
 	public ModelOverrideList getOverrides() {
 		return ModelOverrideList.EMPTY;
 	}
 
 	@Override
 	public Collection<Identifier> getModelDependencies() {
-		return Collections.singleton(DEFAULT_BLOCK_MODEL);
+		return Collections.singleton(this.getItemTransformationParentId());
 	}
 
 	@Override
@@ -123,23 +142,39 @@ public abstract class AbstractBakedModel implements UnbakedModel {
 		return this.textureDependencies;
 	}
 
-	public static void buildCube(ModelBakeSettings rotations, QuadEmitter emitter, Function<SpriteIdentifier, Sprite> textureGetter, CubeData data) {
-		for(Direction direction : Devtech.DIRECTIONS) {
-			Direction transformed = Direction.transform(rotations.getRotation().getMatrix(), direction);
-			emitter.square(transformed, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-			emitter.spriteBake(0, RESOLVED.computeIfAbsent(data.identifiers.get(direction), textureGetter), MutableQuadView.BAKE_LOCK_UV);
-			emitter.spriteColor(0, -1, -1, -1, -1);
-			emitter.emit();
+	protected Identifier getItemTransformationParentId() {
+		return DEFAULT_BLOCK_MODEL;
+	}
+
+	@Nullable
+	@Override
+	public BakedModel bake(ModelLoader loader,
+			Function<SpriteIdentifier, Sprite> textureGetter,
+			ModelBakeSettings rotationContainer,
+			Identifier modelId) {
+		JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(this.getItemTransformationParentId());
+		this.itemTransformation = defaultBlockModel.getTransformations();
+		for (SpriteIdentifier s : this.textureDependencies) {
+			RESOLVED.computeIfAbsent(s, textureGetter);
+		}
+		MeshBuilder builder = RENDERER.get().meshBuilder();
+		boolean builtMesh = this.build(RENDERER.get(), builder.getEmitter(), loader, textureGetter, rotationContainer, modelId);
+		if(builtMesh) {
+			Mesh mesh = builder.build();
+			return new Baked(mesh);
+		} else {
+			return new Meshless();
 		}
 	}
 
-	public final class Baked implements BakedModel, FabricBakedModel {
-		private final Mesh mesh;
+	protected abstract boolean build(Renderer renderer,
+			QuadEmitter emitter,
+			ModelLoader loader,
+			Function<SpriteIdentifier, Sprite> textureGetter,
+			ModelBakeSettings rotationContainer,
+			Identifier modelId);
 
-		public Baked(Mesh mesh) {
-			this.mesh = mesh;
-		}
-
+	public class Meshless implements BakedModel, FabricBakedModel {
 		@Override
 		public boolean isVanillaAdapter() {
 			return false;
@@ -151,12 +186,12 @@ public abstract class AbstractBakedModel implements UnbakedModel {
 				BlockPos pos,
 				Supplier<Random> randomSupplier,
 				RenderContext context) {
-			AbstractBakedModel.this.emitBlockQuads(this.mesh, blockView, state, pos, randomSupplier, context);
+			AbstractBakedModel.this.emitBlockQuads(null, blockView, state, pos, randomSupplier, context);
 		}
 
 		@Override
 		public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-			AbstractBakedModel.this.emitItemQuads(this.mesh, stack, randomSupplier, context);
+			AbstractBakedModel.this.emitItemQuads(null, stack, randomSupplier, context);
 		}
 
 		@Override
@@ -191,12 +226,34 @@ public abstract class AbstractBakedModel implements UnbakedModel {
 
 		@Override
 		public ModelTransformation getTransformation() {
-			return AbstractBakedModel.this.getItemTransformation();
+			return AbstractBakedModel.this.itemTransformation;
 		}
 
 		@Override
 		public ModelOverrideList getOverrides() {
 			return AbstractBakedModel.this.getOverrides();
+		}
+	}
+
+	public final class Baked extends Meshless {
+		private final Mesh mesh;
+
+		public Baked(Mesh mesh) {
+			this.mesh = mesh;
+		}
+
+		@Override
+		public void emitBlockQuads(BlockRenderView blockView,
+				BlockState state,
+				BlockPos pos,
+				Supplier<Random> randomSupplier,
+				RenderContext context) {
+			AbstractBakedModel.this.emitBlockQuads(this.mesh, blockView, state, pos, randomSupplier, context);
+		}
+
+		@Override
+		public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
+			AbstractBakedModel.this.emitItemQuads(this.mesh, stack, randomSupplier, context);
 		}
 	}
 }

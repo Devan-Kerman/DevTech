@@ -33,7 +33,13 @@ public interface DLang {
 			.formatted(Formatting.DARK_GRAY, Formatting.ITALIC);
 	@Deprecated
 	Text RPT = translate("tooltip.devtech.rpt", "%3.3f RPT ").append(RPT_HELPER);
-	Text BASIC_ALLOY_KILN = translate("gui.devtech.basic_alloy_kiln", "Basic Alloy Kiln");
+	Text BASIC_ALLOY_KILN = new TranslatableText(DMachines.PAT.block.getTranslationKey());
+	Text SOLAR_COOKER = new TranslatableText(DBlocks.SOLAR_COOKER.getTranslationKey());
+	Text SOLAR_COOKER_DESC = translate("tooltip.devtech.solar_cooker_description", "A solar powered furnace. Higher skylight level = Faster Cooking. Peek speed is equal to furnace");
+	Text ELDRICH_PHANTOM_CORE_DESC = translate("tooltip.devtech.epc_desc", "When activated (r-click), grants the player:").formatted(Formatting.GRAY);
+	Text ELDRICH_PHANTOM_CORE_DESC_0 = translate("tooltip.devtech.epc_desc_0", "   + creative-like flight").formatted(Formatting.GRAY);
+	Text ELDRICH_PHANTOM_CORE_DESC_1 = translate("tooltip.devtech.epc_desc_1", "   + noClip (phase through blocks like spectator mode)").formatted(Formatting.GRAY);
+	Text AIR_JUMP_ITEM_DESC = translate("tooltip.aji_desc", "Allows the player to jump in air").formatted(Formatting.GRAY);
 
 	static Text rpt(float rpm) {
 		return new TranslatableText("tooltip.devtech.rpt", rpm).append(RPT_HELPER);
